@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/plant_provider.dart';
 import '../services/esp_service.dart';
-import '../models/plant.dart';
+// import '../models/plant.dart'; // Removed unused import
 import '../widgets/plant_card.dart';
+import 'zone_overview_screen.dart'; // Added import for navigation
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
