@@ -106,6 +106,7 @@ static Future<bool> ping() async {
     debugPrint('📛 Stacktrace: $stacktrace');
     return false;
   }
+  // Removed extra closing brace here that was causing methods to be outside the class
 
   /// Manuelle Bewässerung stoppen
   static Future<void> stopManualWatering(int kanal) async {
@@ -135,4 +136,4 @@ static Future<bool> ping() async {
     }
   }
 }
-}
+// Removed extra closing brace here

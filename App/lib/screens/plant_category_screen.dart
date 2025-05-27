@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/plant.dart';
-import '../models/plant_data.dart'; // Though plantsData is passed, good for context
+// import '../models/plant_data.dart'; // Removed unused import
 import '../providers/plant_provider.dart';
 
 class PlantCategoryScreen extends StatelessWidget {
@@ -9,10 +9,10 @@ class PlantCategoryScreen extends StatelessWidget {
   final List<Map<String, String>> plantsData;
 
   const PlantCategoryScreen({
-    Key? key,
+    super.key, // use_super_parameters
     required this.category,
     required this.plantsData,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,11 +43,11 @@ class PlantCategoryScreen extends StatelessWidget {
                           imagePath,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            return Icon(Icons.local_florist_outlined, size: 30, color: theme.iconTheme.color?.withOpacity(0.7));
+                            return Icon(Icons.local_florist_outlined, size: 30, color: theme.iconTheme.color?.withAlpha((0.7 * 255).round()));
                           },
                         ),
                       )
-                    : Icon(Icons.local_florist_outlined, size: 30, color: theme.iconTheme.color?.withOpacity(0.7)),
+                    : Icon(Icons.local_florist_outlined, size: 30, color: theme.iconTheme.color?.withAlpha((0.7 * 255).round())),
               ),
               title: Text(
                 entry['name'] ?? 'Unknown Plant',

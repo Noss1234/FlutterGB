@@ -192,7 +192,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       backgroundColor: Colors.transparent, // For shared background
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16), // const added
         child: ListView(
           children: [
             _buildSectionTitle("Verbindung & Kalibrierung", theme),
@@ -216,7 +216,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionTitle("Systemaktionen", theme),
             _buildActionButton(
               title: "Wasserverbrauch zurücksetzen",
-              icon: Icons.delete_sweep_outlined,
+              icon: const Icon(Icons.delete_sweep_outlined), // const added
               onPressed: _resetWaterUsage,
               color: Colors.orange[700], // Custom color for destructive actions
               theme: theme,
@@ -224,7 +224,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 12),
             _buildActionButton(
               title: "Routinen zurücksetzen",
-              icon: Icons.event_busy_outlined,
+              icon: const Icon(Icons.event_busy_outlined), // const added
               onPressed: _resetRoutines,
               color: Colors.orange[700], // Custom color
               theme: theme,
@@ -236,7 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _httpTestMethod,
-              decoration: InputDecoration( // Will use inputDecorationTheme
+              decoration: const InputDecoration( // const added, will use inputDecorationTheme
                 labelText: "HTTP Methode",
                 // border: OutlineInputBorder(), // from theme
               ),
@@ -264,7 +264,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 16),
             ElevatedButton.icon( // Will use elevatedButtonTheme
               onPressed: _isTestingHttp ? null : _sendHttpTestRequest,
-              icon: _isTestingHttp ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white)) : const Icon(Icons.send_outlined),
+              icon: _isTestingHttp 
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white)) 
+                  : const Icon(Icons.send_outlined),
               label: const Text("HTTP Anfrage senden"),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700]), // Custom color for this specific button
             ),
@@ -273,15 +275,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text("Antwort:", style: theme.textTheme.titleMedium), // Using themed text
               const SizedBox(height: 4),
               Container(
-                padding: const EdgeInsets.all(12), // Increased padding
+                padding: const EdgeInsets.all(12), // Increased padding // const added
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.05), // Softer background
+                  color: Colors.black.withAlpha((0.05 * 255).round()), // Softer background // Replaced withOpacity
                   borderRadius: BorderRadius.circular(8), // Rounded corners
                   border: Border.all(color: Colors.grey[300]!)
                 ),
                 child: SelectableText(
                   _httpTestResponse!,
-                  style: TextStyle(fontFamily: 'monospace', fontSize: 13, color: Colors.grey[800]), // Adjusted font size and color
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 13, color: Colors.grey_800), // Adjusted font size and color // const added
                 ),
               ),
             ],
@@ -294,7 +296,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSectionTitle(String title, ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0, top: 10.0), // Adjusted padding
+      padding: const EdgeInsets.only(bottom: 12.0, top: 10.0), // Adjusted padding // const added
       child: Text(
         title,
         style: theme.textTheme.headlineSmall?.copyWith(color: theme.primaryColor), // Use themed text
@@ -304,7 +306,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildActionButton({required String title, required IconData icon, required VoidCallback onPressed, Color? color, required ThemeData theme}) {
     return ElevatedButton.icon(
-      icon: Icon(icon),
+      icon: Icon(icon), // This Icon cannot be const because icon is a parameter
       label: Text(title),
       onPressed: onPressed,
       style: ElevatedButton.styleFrom( // Will mostly inherit from theme

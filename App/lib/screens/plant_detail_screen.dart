@@ -71,6 +71,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
       title: "Aktueller Status",
       value: statusText,
       valueColor: statusColor,
+      theme: Theme.of(context), // Added missing theme argument
     );
   }
 
@@ -83,6 +84,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
       icon: Icons.history_toggle_off, // Changed icon for consumption
       title: "Wasserverbrauch Heute",
       value: consumptionText,
+      theme: Theme.of(context), // Added missing theme argument
     );
   }
 
@@ -122,7 +124,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                                 width: double.infinity,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
-                                  print("Error loading asset image ${widget.plant.imageUrl}: $error");
+                                  // print("Error loading asset image ${widget.plant.imageUrl}: $error"); // Removed print
                                   return Container(
                                     height: 200,
                                     width: double.infinity,
@@ -137,7 +139,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                                 width: double.infinity,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
-                                  print("Error loading network image ${widget.plant.imageUrl}: $error");
+                                  // print("Error loading network image ${widget.plant.imageUrl}: $error"); // Removed print
                                   return Container(
                                     height: 200,
                                     width: double.infinity,
@@ -272,7 +274,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center, // Center align items
         children: [
-          Icon(icon, color: theme.iconTheme.color?.withOpacity(0.8), size: 22), // Use themed icon color
+          Icon(icon, color: theme.iconTheme.color?.withAlpha((0.8 * 255).round()), size: 22), // Use themed icon color
           const SizedBox(width: 16),
           Expanded(
             child: Text(

@@ -3,7 +3,7 @@ import 'plant_category_screen.dart';
 import '../models/plant_data.dart';
 
 class PlantLibraryScreen extends StatelessWidget {
-  const PlantLibraryScreen({Key? key}) : super(key: key);
+  const PlantLibraryScreen({super.key}) : super(); // use_super_parameters
 
   Widget _buildCategoryTile(BuildContext context, String title, IconData icon, List<Map<String, String>> plantsData) {
     final theme = Theme.of(context);
@@ -12,7 +12,7 @@ class PlantLibraryScreen extends StatelessWidget {
       child: ListTile(
         leading: Icon(icon, color: theme.iconTheme.color, size: 28),
         title: Text(title, style: theme.textTheme.titleLarge),
-        trailing: Icon(Icons.chevron_right, color: theme.iconTheme.color?.withOpacity(0.6)),
+        trailing: Icon(Icons.chevron_right, color: theme.iconTheme.color?.withAlpha((0.6 * 255).round())),
         onTap: () {
           Navigator.push(
             context,

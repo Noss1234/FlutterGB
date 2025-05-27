@@ -6,9 +6,9 @@ class PlantCard extends StatelessWidget {
   final Plant plant;
 
   const PlantCard({
-    Key? key,
+    super.key, // use_super_parameters
     required this.plant,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +72,7 @@ class PlantCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(Icons.water_drop_outlined, size: 15, color: theme.iconTheme.color?.withOpacity(0.7)),
+                        Icon(Icons.water_drop_outlined, size: 15, color: theme.iconTheme.color?.withAlpha((0.7 * 255).round())),
                         const SizedBox(width: 5),
                         Text(
                           '${plant.waterNeed}ml',
@@ -83,7 +83,7 @@ class PlantCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(Icons.thermostat_outlined, size: 15, color: theme.iconTheme.color?.withOpacity(0.7)), // Example icon for pH
+                        Icon(Icons.thermostat_outlined, size: 15, color: theme.iconTheme.color?.withAlpha((0.7 * 255).round())), // Example icon for pH
                         const SizedBox(width: 5),
                         Text(
                           'pH ${plant.idealPH.toStringAsFixed(1)}',

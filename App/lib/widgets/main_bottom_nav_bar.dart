@@ -5,10 +5,10 @@ class MainBottomNavBar extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   const MainBottomNavBar({
-    Key? key,
+    super.key, // use_super_parameters
     required this.currentIndex,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,15 +21,15 @@ class MainBottomNavBar extends StatelessWidget {
       selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
+          icon: const Icon(Icons.home_outlined), // const added
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.water_drop_outlined),
+          icon: const Icon(Icons.water_drop_outlined), // const added
           label: 'Zones',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.settings_outlined),
+          icon: const Icon(Icons.settings_outlined), // const added
           label: 'Settings',
         ),
       ],

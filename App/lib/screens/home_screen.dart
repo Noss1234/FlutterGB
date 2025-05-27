@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha((0.1 * 255).round()), // Replaced withOpacity
             blurRadius: 8,
             offset: const Offset(0, 2),
           )
@@ -98,9 +98,11 @@ class _HomeScreenState extends State<HomeScreen> {
     String summary = "Keine Daten";
     if (_waterUsage != null) {
       double total = 0;
-      _waterUsage!.values.forEach((usage) {
-        if (usage is num) total += usage;
-      });
+      for (var usage in _waterUsage!.values) { // Replaced forEach with for-in loop
+        if (usage is num) {
+          total += usage;
+        }
+      }
       summary = "Gesamt: ${total.toStringAsFixed(1)} ml";
     }
 
@@ -111,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
       subtitle: summary,
       onTap: () {
         // Optional: Navigate to a detailed water usage screen
-        print("Water usage tile tapped");
+        // print("Water usage tile tapped"); // Removed print
       },
     );
   }
@@ -149,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildConnectionInfoBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: _isConnected ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+      color: _isConnected ? Colors.green.withAlpha((0.1 * 255).round()) : Colors.orange.withAlpha((0.1 * 255).round()), // Replaced withOpacity
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -216,7 +218,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           iconColor: Colors.orangeAccent,
                           title: "Wetter",
                           subtitle: "Sonnig, 23°C", // Placeholder
-                          onTap: () => print("Weather tile tapped"),
+                          onTap: () {
+                            // print("Weather tile tapped"); // Removed print
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Wetterdetails noch nicht implementiert.')),
+                            );
+                          }
                         ),
                         _buildCurrentStatusTile(),
                         _buildWaterUsageTile(),
@@ -227,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           title: "Routinen",
                           subtitle: "3 aktiv", // Placeholder
                           onTap: () {
-                             print('Navigate to Routines Screen');
+                             // print('Navigate to Routines Screen'); // Removed print
                              ScaffoldMessenger.of(context).showSnackBar(
                                const SnackBar(content: Text('Routinen screen not yet implemented')),
                              );
@@ -280,11 +287,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             elevation: 2,
                           ),
                           onPressed: () {
-                            // TODO: Navigate to ZoneOverviewScreen (manual_control_screen)
-                            // For now, using the old Routines placeholder action:
-                            print('Navigate to Manual Control Screen');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Manuelle Steuerung noch nicht implementiert')),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ZoneOverviewScreen()),
                             );
                           },
                         ),

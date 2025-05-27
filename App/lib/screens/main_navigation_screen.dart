@@ -1,6 +1,6 @@
 // screens/main_navigation_screen.dart
 import 'package:flutter/material.dart';
-import 'package:irrigation_control_app/widgets/main_bottom_nav_bar.dart';
+import '../widgets/main_bottom_nav_bar.dart'; // Corrected import path
 import 'home_screen.dart';
 import 'zone_overview_screen.dart';
 import 'settings_screen.dart';

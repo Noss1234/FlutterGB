@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// Removed: import 'package:shared_preferences/shared_preferences.dart';
 
 import 'providers/plant_provider.dart';
-import 'screens/home_screen.dart';
-import 'screens/zone_overview_screen.dart';
-import 'screens/settings_screen.dart';
+// Removed: import 'screens/home_screen.dart';
+// Removed: import 'screens/zone_overview_screen.dart';
+// Removed: import 'screens/settings_screen.dart';
 import 'screens/main_navigation_screen.dart';
 
 void main() async {
