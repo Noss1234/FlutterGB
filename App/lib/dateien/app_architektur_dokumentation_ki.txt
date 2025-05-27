@@ -23,11 +23,15 @@ Sie visualisiert Pflanzen, Statusdaten und erlaubt manuelle sowie geplante Steue
    - Horizontale Scroll-Liste mit allen Pflanzen (abgebildet mit PlantCard)
    - Buttons zu: „Manuelle Steuerung“, „Einstellungen“, „Routinen“
 
-3. screens/manual_control_screen.dart
-   - Liste aller Zonen (0–7)
-   - Start/Stopp-Toggle je Zone mit optischer Statusanzeige
-   - Verwendet HTTP-POST /start_manual und /stop_manual
-   - Rückmeldung über HTTP-Antwort (Snackbars)
+3. screens/zone_overview_screen.dart
+   - Liste aller Zonen (0–7) zur manuellen Steuerung in `zone_overview_screen.dart`.
+   - Start/Stopp-Toggle je Zone mit optischer Statusanzeige.
+   - Verwendet HTTP-POST /start_manual und /stop_manual.
+   - Rückmeldung über HTTP-Antwort (Snackbars).
+
+3a. screens/plant_category_screen.dart
+    - Zeigt Pflanzen einer bestimmten Kategorie aus PlantData an.
+    - Ermöglicht das Hinzufügen einer Pflanzenschablone zur Hauptpflanzenliste des Nutzers (via PlantProvider).
 
 4. screens/plant_library_screen.dart
    - Pflanzenauswahl aus JSON oder embedded DB
@@ -48,10 +52,10 @@ Sie visualisiert Pflanzen, Statusdaten und erlaubt manuelle sowie geplante Steue
 7. services/esp_service.dart
    - Globale Singleton-Instanz
    - Enthält alle HTTP-Funktionen:
-     - getRoutines()
-     - getCurrentRoutine()
-     - startManual(zone, volume)
-     - stopManual()
+     - getRoutines() 
+     - getCurrentRoutine() 
+     - startManual(zone, volume) 
+     - stopManual(zone) 
      - getWaterUsage()
      - resetWaterUsage()
      - getPulseCount()
@@ -60,8 +64,8 @@ Sie visualisiert Pflanzen, Statusdaten und erlaubt manuelle sowie geplante Steue
 
 8. providers/plant_provider.dart
    - Zustandsverwaltung für Pflanzenliste
-   - addPlant, removePlant, getPlantByZone
-   - verwendet shared_preferences zur Speicherung
+   - addPlant, removePlant, getPlantById
+   - ruft Pflanzen über EspService ab und verwaltet sie im Speicher.
 
 9. widgets/plant_card.dart
    - Visualisierung einer Pflanze
@@ -84,11 +88,11 @@ Sie visualisiert Pflanzen, Statusdaten und erlaubt manuelle sowie geplante Steue
 📡 VERWENDETE HTTP-ENDPUNKTE:
 ------------------------------------------------------------
 
-- GET    /                       → Verbindungsprüfung (Text)
+- GET    /                       → Verbindungsprüfung (Text via /status Endpoint in der App implementiert)
 - GET    /routines               → Liste aller Routinen
 - GET    /current_routine        → Aktive Routine (falls vorhanden)
 - POST   /start_manual           → {"kanal": X, "wassermenge": Y}
-- POST   /stop_manual            → Routine abbrechen
+- POST   /stop_manual            → Manuelle Bewässerung für einen Kanal stoppen (Body: {"kanal": X})
 - GET    /water_usage            → Wasserstände aller Zonen
 - GET    /pulse_count            → Aktueller Impulswert
 - POST   /reset_water_usage      → Zähler auf 0

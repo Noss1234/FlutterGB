@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/plant_provider.dart';
 import '../services/esp_service.dart';
 import '../models/plant.dart';
+import '../widgets/plant_card.dart'; // Added import for PlantCard
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -37,11 +38,15 @@ class _HomeScreenState extends State<HomeScreen> {
       currentStatus = await EspService.getStatus();
       waterUsage = await EspService.getWaterUsage();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Fehler beim Laden: $e")),
-      );
+      if (mounted) { // Check if the widget is still in the tree
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Fehler beim Laden: $e")),
+        );
+      }
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) { // Check if the widget is still in the tree
+        setState(() => isLoading = false);
+      }
     }
   }
 
@@ -75,6 +80,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   _buildConnectionInfo(),
                   const SizedBox(height: 16),
+                  // Added Weather and Status Card Placeholder
+                  Card(
+                    elevation: 2,
+                    color: Colors.white,
+                    child: ListTile(
+                      leading: Icon(Icons.wb_sunny_outlined, color: Colors.orangeAccent),
+                      title: Text('Wetter & Vorhersage'),
+                      subtitle: Text('Aktuell sonnig, 23°C. Ideal für die Gartenarbeit.'),
+                      onTap: () => print('Weather card tapped'), // Placeholder action
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   _buildCurrentStatusCard(),
                   const SizedBox(height: 16),
                   _buildWaterUsageCard(),
@@ -84,22 +101,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  ...plants.map(_buildPlantCard).toList(),
+                  // Replaced _buildPlantCard with PlantCard widget
+                  ...plants.map((Plant plant) => PlantCard(plant: plant)).toList(),
+                  const SizedBox(height: 24), // Added some spacing
+                  // Added "Routines" Navigation Placeholder Button
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[700],
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      textStyle: const TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                    onPressed: () {
+                      print('Navigate to Routines Screen');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Routines screen not yet implemented')),
+                      );
+                    },
+                    child: const Text('Zu den Routinen', style: TextStyle(color: Colors.white)),
+                  ),
+                  const SizedBox(height: 16), // Bottom padding
                 ],
               ),
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          EspService.startManualWatering(1, 300).then((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Manuelle Bewässerung gestartet")),
-            );
-          });
-        },
-        icon: const Icon(Icons.water),
-        label: const Text("Jetzt bewässern"),
-        backgroundColor: Colors.green[600],
-      ),
+      // Removed FloatingActionButton
     );
   }
 
@@ -145,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCurrentStatusCard() {
-    if (currentStatus == null) return Container();
+    if (currentStatus == null) return Container(); // Return empty if no status
     return Card(
       color: Colors.white,
       elevation: 2,
@@ -159,10 +183,12 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: const Icon(Icons.stop_circle, color: Colors.red),
           onPressed: () {
             EspService.resetWaterUsage().then((_) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Bewässerung gestoppt")),
-              );
-              _loadInitialData(); // neu laden
+               if (mounted) { // Check if the widget is still in the tree
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Bewässerung gestoppt")),
+                );
+                _loadInitialData(); // neu laden
+               }
             });
           },
         ),
@@ -171,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildWaterUsageCard() {
-    if (waterUsage == null) return Container();
+    if (waterUsage == null) return Container(); // Return empty if no usage data
     return Card(
       elevation: 2,
       color: Colors.white,
@@ -180,29 +206,10 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text("Wasserverbrauch"),
         children: waterUsage!.entries.map((e) {
           return ListTile(
-            title: Text(e.key),
-            trailing: Text("${e.value} ml"),
+            title: Text(e.key), // Assuming key is Zone name or similar
+            trailing: Text("${e.value} ml"), // Assuming value is usage in ml
           );
         }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildPlantCard(Plant plant) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundImage: NetworkImage(plant.imageUrl),
-          backgroundColor: Colors.green[100],
-        ),
-        title: Text(plant.name),
-        subtitle: Text(
-            "${plant.category} • Wasser: ${plant.waterNeed}ml • pH: ${plant.idealPH}"),
-        onTap: () {
-          // optional: Navigiere zu Pflanzendetails
-        },
       ),
     );
   }

@@ -106,5 +106,33 @@ static Future<bool> ping() async {
     debugPrint('📛 Stacktrace: $stacktrace');
     return false;
   }
+
+  /// Manuelle Bewässerung stoppen
+  static Future<void> stopManualWatering(int kanal) async {
+    final baseUrl = await getBaseUrl();
+    final url = Uri.parse('$baseUrl/stop_manual');
+    final body = jsonEncode({'kanal': kanal});
+    final headers = {'Content-Type': 'application/json'};
+    final response = await http.post(url, body: body, headers: headers);
+
+    if (response.statusCode != 200) {
+      // Consider parsing response.body if the ESP sends a specific error message
+      throw Exception('Stoppen der manuellen Bewässerung für Kanal $kanal fehlgeschlagen. Status: ${response.statusCode}');
+    }
+  }
+
+  /// Routinen an den ESP senden
+  static Future<void> receiveRoutines(List<Map<String, dynamic>> routinesData) async {
+    final baseUrl = await getBaseUrl();
+    final url = Uri.parse('$baseUrl/receive_routines');
+    final body = jsonEncode(routinesData);
+    final headers = {'Content-Type': 'application/json'};
+    final response = await http.post(url, body: body, headers: headers);
+
+    if (response.statusCode != 200) {
+      // Consider parsing response.body for error details
+      throw Exception('Senden der Routinen fehlgeschlagen. Status: ${response.statusCode}');
+    }
+  }
 }
 }

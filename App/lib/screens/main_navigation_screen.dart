@@ -1,5 +1,6 @@
 // screens/main_navigation_screen.dart
 import 'package:flutter/material.dart';
+import 'package:irrigation_control_app/widgets/main_bottom_nav_bar.dart';
 import 'home_screen.dart';
 import 'zone_overview_screen.dart';
 import 'settings_screen.dart';
@@ -21,37 +22,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     SettingsScreen(),
   ];
 
-  final List<String> _titles = [
-    "Übersicht",
-    "Zonen",
-    "Einstellungen",
-  ];
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _screens,
+      ),
+      bottomNavigationBar: MainBottomNavBar(
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.green[800],
-        unselectedItemColor: Colors.grey[600],
-        backgroundColor: Colors.white,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        onTap: (index) => setState(() => _selectedIndex = index),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.water_drop_outlined),
-            label: "Zonen",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            label: "Einstellungen",
-          ),
-        ],
+        onTap: _onItemTapped,
       ),
     );
   }
