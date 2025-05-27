@@ -21,15 +21,15 @@ class MainBottomNavBar extends StatelessWidget {
       selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
       items: const [
         BottomNavigationBarItem(
-          icon: const Icon(Icons.home_outlined), // const added
+          icon: Icon(Icons.home_outlined), // unnecessary const removed
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.water_drop_outlined), // const added
+          icon: Icon(Icons.water_drop_outlined), // unnecessary const removed
           label: 'Zones',
         ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.settings_outlined), // const added
+          icon: Icon(Icons.settings_outlined), // unnecessary const removed
           label: 'Settings',
         ),
       ],

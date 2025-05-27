@@ -216,7 +216,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionTitle("Systemaktionen", theme),
             _buildActionButton(
               title: "Wasserverbrauch zurücksetzen",
-              icon: const Icon(Icons.delete_sweep_outlined), // const added
+              icon: Icons.delete_sweep_outlined, // Corrected: Pass IconData directly
               onPressed: _resetWaterUsage,
               color: Colors.orange[700], // Custom color for destructive actions
               theme: theme,
@@ -224,7 +224,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 12),
             _buildActionButton(
               title: "Routinen zurücksetzen",
-              icon: const Icon(Icons.event_busy_outlined), // const added
+              icon: Icons.event_busy_outlined, // Corrected: Pass IconData directly
               onPressed: _resetRoutines,
               color: Colors.orange[700], // Custom color
               theme: theme,
@@ -283,7 +283,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 child: SelectableText(
                   _httpTestResponse!,
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 13, color: Colors.grey_800), // Adjusted font size and color // const added
+                  style: TextStyle(fontFamily: 'monospace', fontSize: 13, color: Colors.grey[800]), // Corrected: Colors.grey[800]
                 ),
               ),
             ],

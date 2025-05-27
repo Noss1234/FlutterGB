@@ -31,10 +31,10 @@ class MyGardenApp extends StatelessWidget {
             elevation: 1.0,
             titleTextStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Colors.white),
           ),
-          cardTheme: CardTheme(
+          cardTheme: const CardTheme( // const added
             elevation: 3.0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12.0))), // const added for shape and its properties
+            margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0), // const was already here
             color: Colors.white, // Default card background
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
