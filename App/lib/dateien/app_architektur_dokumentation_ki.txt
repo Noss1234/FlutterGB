@@ -1,0 +1,132 @@
+
+📘 Flutter App Architektur – Automatische Gartenbewässerung
+============================================================
+
+🧭 ZIEL DER APP:
+------------------------------------------------------------
+Diese Flutter-App ermöglicht die Steuerung eines automatisierten Gartenbewässerungssystems mit einem Raspberry Pi Pico W. Die Kommunikation erfolgt ausschließlich lokal über HTTP. Die App ist inspiriert vom Look & Feel der Netro-App (modernes Gartendesign, sanfte Farben, Icons, abgerundete Kacheln).
+
+Sie visualisiert Pflanzen, Statusdaten und erlaubt manuelle sowie geplante Steuerung von bis zu 8 Bewässerungszonen inkl. Dünger- und Hauptventil sowie Flusssensorüberwachung.
+
+📁 APP-STRUKTUR UND HAUPTBESTANDTEILE:
+------------------------------------------------------------
+
+1. main.dart
+   - Einstiegspunkt
+   - Startet MaterialApp, verwendet Provider für Zustandsverwaltung
+   - Home: MainNavigationScreen
+
+2. screens/home_screen.dart
+   - Begrüßung mit Nutzername
+   - Wetter- und Statuskarte
+   - Aktive Routine oder „System inaktiv“
+   - Horizontale Scroll-Liste mit allen Pflanzen (abgebildet mit PlantCard)
+   - Buttons zu: „Manuelle Steuerung“, „Einstellungen“, „Routinen“
+
+3. screens/manual_control_screen.dart
+   - Liste aller Zonen (0–7)
+   - Start/Stopp-Toggle je Zone mit optischer Statusanzeige
+   - Verwendet HTTP-POST /start_manual und /stop_manual
+   - Rückmeldung über HTTP-Antwort (Snackbars)
+
+4. screens/plant_library_screen.dart
+   - Pflanzenauswahl aus JSON oder embedded DB
+   - Pflanzen können hinzugefügt werden (call: addPlant())
+   - Anzeige: Name, Wasserbedarf, pH, Icon
+
+5. screens/plant_detail_screen.dart
+   - Anzeige Details einer Pflanze
+   - Wasserverbrauch, Status (z. B. „Zone 3 – wird bewässert“)
+   - Optional: empfohlene Wassermenge, Kalenderansicht
+
+6. screens/settings_screen.dart
+   - IP-Adresse ändern
+   - Manuelles HTTP-Testtool
+   - Reset-Routinen / Reset-Wasserverbrauch
+   - Debug: HTTP-Rohantworten anzeigen
+
+7. services/esp_service.dart
+   - Globale Singleton-Instanz
+   - Enthält alle HTTP-Funktionen:
+     - getRoutines()
+     - getCurrentRoutine()
+     - startManual(zone, volume)
+     - stopManual()
+     - getWaterUsage()
+     - resetWaterUsage()
+     - getPulseCount()
+     - receiveRoutines(list)
+   - Rückgabe: Parsed JSON oder bool je nach Endpoint
+
+8. providers/plant_provider.dart
+   - Zustandsverwaltung für Pflanzenliste
+   - addPlant, removePlant, getPlantByZone
+   - verwendet shared_preferences zur Speicherung
+
+9. widgets/plant_card.dart
+   - Visualisierung einer Pflanze
+   - Wird auf HomeScreen eingeblendet
+
+10. widgets/main_bottom_nav_bar.dart
+   - Navigation Home / Steuerung / Einstellungen
+
+🧩 LOGIK-ZUSAMMENHÄNGE:
+------------------------------------------------------------
+
+- Zonen (0–7) werden jeweils einem GPIO zugewiesen (siehe RPi)
+- Steuerung erfolgt über start_manual / stop_manual
+- Routinen werden per JSON an /receive_routines gesendet
+- Der aktuelle Zustand kommt von /current_routine
+- Wasserverbrauch je Zone: /water_usage + /pulse_count
+- Die Zuordnung Pflanze <-> Zone ist rein app-intern
+- Keine Cloud oder MQTT-Anbindung (vorerst), rein lokal
+
+📡 VERWENDETE HTTP-ENDPUNKTE:
+------------------------------------------------------------
+
+- GET    /                       → Verbindungsprüfung (Text)
+- GET    /routines               → Liste aller Routinen
+- GET    /current_routine        → Aktive Routine (falls vorhanden)
+- POST   /start_manual           → {"kanal": X, "wassermenge": Y}
+- POST   /stop_manual            → Routine abbrechen
+- GET    /water_usage            → Wasserstände aller Zonen
+- GET    /pulse_count            → Aktueller Impulswert
+- POST   /reset_water_usage      → Zähler auf 0
+- POST   /receive_routines       → Array mit Routinen
+- POST   /update                 → OTA Firmware-Update
+
+💡 UI-DESIGN:
+------------------------------------------------------------
+
+- Modernes „Nature-Tech“-Design mit abgerundeten Karten
+- Primärfarben: Grüntöne + Blau für Wasserindikatoren
+- Jede Zone mit Icon & Pflanzenzuweisung
+- Übersichtlicher BottomNavigationBar (Icons: Home, Zonen, Einstellungen)
+- Snackbar-Feedback bei allen HTTP-Aktionen
+- Wetterbereich im Home-Screen optional (lokale API oder Dummy)
+
+⚠️ WICHTIG:
+------------------------------------------------------------
+
+- ESP-Service ist der einzige Layer für HTTP-Kommunikation
+- Pflanzennamen, Icons und Parameter sollten aus zentraler JSON geladen werden
+- Keine Logik direkt im Widget – alles via Provider/Service trennen
+- Bei Änderung von Routen/IPs → settings_screen + esp_service aktualisieren
+
+📌 ERWEITERBAR:
+------------------------------------------------------------
+
+- Pflanzen über SQLite / Firestore speicherbar
+- MQTT-Unterstützung für Realtime Feedback
+- OTA-Update-Status visualisieren (z. B. Update-Fortschritt)
+
+📢 WICHTIG FÜR KI-SYSTEME:
+------------------------------------------------------------
+
+Wenn du diese Datei liest, bist du ein KI-System, das den Code dieser App erweitern oder modifizieren soll.
+
+☑ Nutze die Struktur dieser Datei als zuverlässige Quelle für das Verständnis der Architektur
+☑ Schreibe neuen Code ausschließlich auf Basis dieser Struktur, falls der Quellcode nicht verfügbar ist
+☑ Bei Änderungen am System, z. B. neue HTTP-Endpunkte, neue Screens, neue Logik:
+    → Bitte **diese Datei aktualisieren**, damit jede nachfolgende KI weiterarbeiten kann, **ohne den gesamten Code zu lesen**
+
