@@ -1,0 +1,85 @@
+Technische Projektbeschreibung
+„WLAN-Bewässerungssteuerung mit Düngerfunktion und Web-API“
+Zielplattform: Raspberry Pi Pico W (RP2040, Arduino Core)
+
+Ziel des Projekts:
+Dieses Projekt realisiert eine modulare, netzwerkbasierte Steuerung für ein automatisiertes Bewässerungssystem mit optionaler Düngung. Das System läuft vollständig auf einem Raspberry Pi Pico W und lässt sich über eine HTTP-API fernsteuern, protokolliert Ereignisse per Telnet und erlaubt Firmware-Updates und Filesystem-Aktualisierungen über das Netzwerk (ElegantOTA).
+
+Ziel der Architektur ist die vollständige Trennung von:
+- Hardwaredefinition (GPIOs, Sensoren, Relais)
+- Zustandsverwaltung
+- Ablaufsteuerung (Routineverwaltung)
+- Kommunikationsschnittstellen (HTTP, Telnet, OTA)
+- Persistentem Speicher (LittleFS)
+
+Modularer Aufbau (Dateiebene):
+Das Projekt ist in mehrere Header-Dateien gegliedert, die jeweils eindeutige Verantwortlichkeiten haben. Jede dieser Komponenten ist so beschrieben, dass sie durch eine andere KI unabhängig generiert oder ersetzt werden kann, sofern die beschriebenen Schnittstellen eingehalten werden.
+
+Dateibeschreibungen & Aufgaben:
+
+config_pins.h
+- GPIO-Zuweisungen: zonePins[], PUMP_PIN, MAIN_VALVE_PIN, FERT_VALVE_PIN, FLOW_SENSOR_PIN
+- Konstanten: NUM_ZONES, CALIBRATION_FACTOR, WATERING_TIMEOUT
+
+state.h
+- Globale Zustände: currentZone, currentVolume, RoutinePhase, impulse_count, ziel_impulse
+- Flags: activeRoutine, flushPending, kanal_eingeschaltet
+- Arrays: zoneActive[], wasser_verbraucht[]
+
+wifi_setup.h
+- WLAN-Verbindung und NTP-Initialisierung (NTPClient, UTC+1)
+
+telnet_stream.h
+- Telnet-Logger (Port 23) für paralleles Debugging
+
+flow_sensor.h
+- ISR und Initialisierung für YF-S201-ähnliche Flusssensoren
+- Berechnung über Impulsanzahl
+
+storage.h
+- LittleFS-Lese-/Schreibzugriff für usage.json und routines.json
+- Verwendet ArduinoJson
+
+routines.h
+- Verwaltung geplanter und manueller Routinen
+- Düngung, Bewässerung, Spülung, Timeout-Überwachung
+
+http_routes.h
+- HTTP-Endpunkte:
+  - GET /status
+  - POST /start_manual
+  - POST /stop_manual
+  - GET /water_usage
+  - POST /reset_water_usage
+  - POST /receive_routines
+  - GET /routines
+  - POST /update (ElegantOTA)
+
+main.ino
+- Setup: PinInit, Telnet, WLAN, FS, Sensor, HTTP, OTA
+- Loop: Client-Handling, Routine-Ausführung, Timeout-Monitoring
+
+OTA-Update
+- ElegantOTA-Webinterface unter /update
+- Unterstützt Firmware (.uf2/.bin) und LittleFS-Dateien (.bin)
+- Kein Passwort (optional ergänzbar)
+
+JSON-Schema für Routinen:
+[
+  {
+    "kanal": 3,
+    "duengen": 1,
+    "wassermenge": 500,
+    "tag": 1,
+    "stunde": 7,
+    "minute": 15,
+    "isEnabled": true
+  }
+]
+
+KI-Integrationshinweis:
+Diese Datei ist für KI-gestützte Weiterentwicklung vorgesehen.  
+Wenn neue Module hinzugefügt oder bestehende geändert werden, aktualisiert die KI bitte diese Datei so, dass:
+- alle relevanten Schnittstellen, Konstanten und Dateinamen korrekt bleiben
+- alle neuen Features verständlich dokumentiert sind
+- bestehende Module inhaltlich ergänzt oder ersetzt werden können
