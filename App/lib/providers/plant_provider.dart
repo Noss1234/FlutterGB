@@ -39,9 +39,6 @@ class PlantProvider with ChangeNotifier {
   }
 
   Plant? getPlantById(String id) {
-    // Using firstWhere with orElse returning null directly.
-    // This avoids the 'null as Plant' cast which causes the error.
-    // The return type of the method is already Plant? so this is safe.
     return _plants.firstWhere((p) => p.id == id, orElse: () => null);
   }
 }

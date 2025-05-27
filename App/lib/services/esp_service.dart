@@ -69,14 +69,15 @@ class EspService {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      // Ensure response.body is not null or empty before parsing
-      if (response.body != null && response.body.trim().isNotEmpty) {
+      // response.body from http.get is a non-nullable String.
+      // An empty body is represented by an empty string.
+      if (response.body.trim().isNotEmpty) {
         return int.parse(response.body.trim());
       } else {
         throw Exception('Leere Antwort vom Impulszähler');
       }
     } else {
-      throw Exception('Fehler beim Abrufen des Impulszählers');
+      throw Exception('Fehler beim Abrufen des Impulszählers. Status: ${response.statusCode}');
     }
   }
 
