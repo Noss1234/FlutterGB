@@ -3,18 +3,21 @@ import 'package:provider/provider.dart';
 import '../providers/plant_provider.dart';
 import '../services/esp_service.dart';
 import '../models/plant.dart';
-import '../widgets/plant_card.dart'; // Added import for PlantCard
+import '../widgets/plant_card.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool isLoading = false;
-  bool isConnected = false;
-  Map<String, dynamic>? currentStatus;
-  Map<String, dynamic>? waterUsage;
+  bool _isLoading = false;
+  bool _isConnected = false;
+  Map<String, dynamic>? _currentStatus;
+  Map<String, dynamic>? _waterUsage;
+  String _espIp = "...";
 
   @override
   void initState() {
@@ -23,194 +26,274 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadInitialData() async {
-    setState(() {
-      isLoading = true;
-      isConnected = false;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      isConnected = await EspService.ping();
-      if (!isConnected) {
-        throw Exception("Keine Verbindung zum Bewässerungssystem");
-      }
+      _isConnected = await EspService.ping();
+      _espIp = await EspService.getBaseUrl().then((url) => url.replaceFirst('http://', ''));
 
-      await Provider.of<PlantProvider>(context, listen: false).fetchPlants();
-      currentStatus = await EspService.getStatus();
-      waterUsage = await EspService.getWaterUsage();
+      if (_isConnected) {
+        await Provider.of<PlantProvider>(context, listen: false).fetchPlants();
+        _currentStatus = await EspService.getStatus();
+        _waterUsage = await EspService.getWaterUsage();
+      } else {
+        throw Exception("Keine Verbindung zum ESP");
+      }
     } catch (e) {
-      if (mounted) { // Check if the widget is still in the tree
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Fehler beim Laden: $e")),
+          SnackBar(content: Text("Fehler beim Laden der Daten: $e"), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
-      if (mounted) { // Check if the widget is still in the tree
-        setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
 
+  Widget _buildDashboardTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    Color iconColor = Colors.green,
+    VoidCallback? onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          )
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12.0),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(icon, size: 30, color: iconColor),
+                const SizedBox(height: 8),
+                Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(subtitle, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildWaterUsageTile() {
+    String summary = "Keine Daten";
+    if (_waterUsage != null) {
+      double total = 0;
+      _waterUsage!.values.forEach((usage) {
+        if (usage is num) total += usage;
+      });
+      summary = "Gesamt: ${total.toStringAsFixed(1)} ml";
+    }
+
+    return _buildDashboardTile(
+      icon: Icons.opacity_outlined,
+      iconColor: Colors.blue[400]!,
+      title: "Wasserverbrauch",
+      subtitle: summary,
+      onTap: () {
+        // Optional: Navigate to a detailed water usage screen
+        print("Water usage tile tapped");
+      },
+    );
+  }
+
+  Widget _buildCurrentStatusTile() {
+    String statusText = "Unbekannt";
+    String detailText = "Keine aktive Bewässerung";
+    IconData statusIcon = Icons.info_outline;
+    Color iconColor = Colors.grey;
+
+    if (_currentStatus != null) {
+      final phase = _currentStatus!['phase'] ?? 'idle';
+      final kanal = _currentStatus!['kanal'] ?? '-';
+      if (phase != 'idle') {
+        statusText = "Aktiv: Zone $kanal";
+        detailText = "Phase: $phase";
+        statusIcon = Icons.water_damage_outlined; // More specific icon
+        iconColor = Colors.green[600]!;
+      } else {
+        statusText = "System Bereit";
+        detailText = "Keine Zone aktiv";
+        statusIcon = Icons.power_settings_new_outlined;
+        iconColor = Colors.orange[600]!;
+      }
+    }
+
+    return _buildDashboardTile(
+      icon: statusIcon,
+      iconColor: iconColor,
+      title: statusText,
+      subtitle: detailText,
+    );
+  }
+  
+  Widget _buildConnectionInfoBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: _isConnected ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            _isConnected ? Icons.check_circle_outline : Icons.error_outline,
+            color: _isConnected ? Colors.green[700] : Colors.orange[700],
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            _isConnected ? "Verbunden mit ESP ($_espIp)" : "Nicht verbunden ($_espIp)",
+            style: TextStyle(
+              color: _isConnected ? Colors.green[800] : Colors.orange[800],
+              fontWeight: FontWeight.w500,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final plants = Provider.of<PlantProvider>(context).plants;
+    final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: Colors.transparent, // Light neutral background
       appBar: AppBar(
-        title: const Text("MyGarden Controller"),
-        backgroundColor: Colors.green[700],
+        title: const Text("MyGarden Dashboard"),
+        backgroundColor: Colors.green[600], // Softer green
+        elevation: 1.0,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: Icon(
               Icons.wifi,
-              color: isConnected ? Colors.lightGreenAccent : Colors.redAccent,
+              color: _isConnected ? Colors.white : Colors.orangeAccent[100],
             ),
-            tooltip: isConnected ? "Verbunden" : "Nicht verbunden",
+            tooltip: _isConnected ? "Verbunden" : "Nicht verbunden",
             onPressed: _loadInitialData,
           ),
         ],
       ),
-      backgroundColor: Colors.green[50],
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator(color: Colors.green[600]))
           : RefreshIndicator(
               onRefresh: _loadInitialData,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _buildConnectionInfo(),
-                  const SizedBox(height: 16),
-                  // Added Weather and Status Card Placeholder
-                  Card(
-                    elevation: 2,
-                    color: Colors.white,
-                    child: ListTile(
-                      leading: Icon(Icons.wb_sunny_outlined, color: Colors.orangeAccent),
-                      title: Text('Wetter & Vorhersage'),
-                      subtitle: Text('Aktuell sonnig, 23°C. Ideal für die Gartenarbeit.'),
-                      onTap: () => print('Weather card tapped'), // Placeholder action
+              color: Colors.green[600]!,
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(child: _buildConnectionInfoBar()),
+                  SliverPadding(
+                    padding: const EdgeInsets.all(12.0),
+                    sliver: SliverGrid.count(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      children: [
+                        _buildDashboardTile(
+                          icon: Icons.wb_sunny_outlined,
+                          iconColor: Colors.orangeAccent,
+                          title: "Wetter",
+                          subtitle: "Sonnig, 23°C", // Placeholder
+                          onTap: () => print("Weather tile tapped"),
+                        ),
+                        _buildCurrentStatusTile(),
+                        _buildWaterUsageTile(),
+                        // Add more tiles here if needed
+                         _buildDashboardTile( // Example for a new tile
+                          icon: Icons.calendar_today_outlined,
+                          iconColor: Colors.purple[400]!,
+                          title: "Routinen",
+                          subtitle: "3 aktiv", // Placeholder
+                          onTap: () {
+                             print('Navigate to Routines Screen');
+                             ScaffoldMessenger.of(context).showSnackBar(
+                               const SnackBar(content: Text('Routinen screen not yet implemented')),
+                             );
+                          }
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  _buildCurrentStatusCard(),
-                  const SizedBox(height: 16),
-                  _buildWaterUsageCard(),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "🌱 Deine Pflanzen",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  // Replaced _buildPlantCard with PlantCard widget
-                  ...plants.map((Plant plant) => PlantCard(plant: plant)).toList(),
-                  const SizedBox(height: 24), // Added some spacing
-                  // Added "Routines" Navigation Placeholder Button
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[700],
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      textStyle: const TextStyle(fontSize: 16, color: Colors.white),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      child: Text(
+                        "🌱 Meine Pflanzen",
+                        style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600, color: Colors.green[800]),
+                      ),
                     ),
-                    onPressed: () {
-                      print('Navigate to Routines Screen');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Routines screen not yet implemented')),
-                      );
-                    },
-                    child: const Text('Zu den Routinen', style: TextStyle(color: Colors.white)),
                   ),
-                  const SizedBox(height: 16), // Bottom padding
+                  plants.isEmpty
+                      ? SliverToBoxAdapter(
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 30.0),
+                              child: Text("Keine Pflanzen hinzugefügt.", style: TextStyle(color: Colors.grey[700], fontSize: 16)),
+                            ),
+                          ),
+                        )
+                      : SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) => Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                              child: PlantCard(plant: plants[index]),
+                            ),
+                            childCount: plants.length,
+                          ),
+                        ),
+                  SliverFillRemaining( // Pushes button to bottom if content is short
+                    hasScrollBody: false,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.settings_remote_outlined, color: Colors.white),
+                          label: const Text("Manuelle Zonensteuerung", style: TextStyle(color: Colors.white, fontSize: 16)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green[500],
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            minimumSize: const Size(double.infinity, 50), // Full-width
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                            elevation: 2,
+                          ),
+                          onPressed: () {
+                            // TODO: Navigate to ZoneOverviewScreen (manual_control_screen)
+                            // For now, using the old Routines placeholder action:
+                            print('Navigate to Manual Control Screen');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Manuelle Steuerung noch nicht implementiert')),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-      // Removed FloatingActionButton
-    );
-  }
-
-  Widget _buildConnectionInfo() {
-    return FutureBuilder<String>(
-      future: EspService.getBaseUrl(),
-      builder: (context, snapshot) {
-        final ipText = snapshot.hasData
-            ? "IP: ${snapshot.data!.replaceFirst('http://', '')}"
-            : "IP: ...";
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  isConnected ? Icons.check_circle : Icons.cancel,
-                  color: isConnected ? Colors.green : Colors.red,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  isConnected
-                      ? "Verbindung zum System aktiv"
-                      : "Keine Verbindung",
-                  style: TextStyle(
-                    color: isConnected ? Colors.green[800] : Colors.red[800],
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              ipText,
-              style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildCurrentStatusCard() {
-    if (currentStatus == null) return Container(); // Return empty if no status
-    return Card(
-      color: Colors.white,
-      elevation: 2,
-      child: ListTile(
-        leading: const Icon(Icons.timer, color: Colors.green),
-        title: Text("Status: ${currentStatus!['phase']}"),
-        subtitle: Text(
-          "Zone: ${currentStatus!['kanal']} • Fortschritt: ${currentStatus!['impulse_gesamt']} / ${currentStatus!['impulse_ziel']} Impulse",
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.stop_circle, color: Colors.red),
-          onPressed: () {
-            EspService.resetWaterUsage().then((_) {
-               if (mounted) { // Check if the widget is still in the tree
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Bewässerung gestoppt")),
-                );
-                _loadInitialData(); // neu laden
-               }
-            });
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWaterUsageCard() {
-    if (waterUsage == null) return Container(); // Return empty if no usage data
-    return Card(
-      elevation: 2,
-      color: Colors.white,
-      child: ExpansionTile(
-        leading: const Icon(Icons.water_drop, color: Colors.blue),
-        title: const Text("Wasserverbrauch"),
-        children: waterUsage!.entries.map((e) {
-          return ListTile(
-            title: Text(e.key), // Assuming key is Zone name or similar
-            trailing: Text("${e.value} ml"), // Assuming value is usage in ml
-          );
-        }).toList(),
-      ),
     );
   }
 }

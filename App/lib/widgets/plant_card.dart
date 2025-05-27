@@ -12,11 +12,16 @@ class PlantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Access theme
+
     return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      // Card properties will now be mostly inherited from cardTheme in main.dart
+      // elevation: 2, // Overridden by cardTheme.elevation if set
+      // margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0), // Overridden by cardTheme.margin
+      // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)), // Overridden by cardTheme.shape
+      // color: Colors.white, // Overridden by cardTheme.color
       child: InkWell(
+        borderRadius: BorderRadius.circular(12.0), // Match card shape for ink splash
         onTap: () {
           Navigator.push(
             context,
@@ -53,32 +58,36 @@ class PlantCard extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       plant.name,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 17), // Use themed text
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       plant.category,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                      style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13), // Use themed text
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(Icons.water_drop_outlined, size: 14, color: Colors.blue[700]),
-                        const SizedBox(width: 4),
+                        Icon(Icons.water_drop_outlined, size: 15, color: theme.iconTheme.color?.withOpacity(0.7)),
+                        const SizedBox(width: 5),
                         Text(
-                          'Wasser: ${plant.waterNeed}ml',
-                          style: TextStyle(fontSize: 12, color: Colors.blue[700]),
+                          '${plant.waterNeed}ml',
+                          style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12, color: Colors.blueGrey[700]),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(Icons.thermostat_outlined, size: 14, color: Colors.orange[700]), // Example icon for pH
-                        const SizedBox(width: 4),
+                        Icon(Icons.thermostat_outlined, size: 15, color: theme.iconTheme.color?.withOpacity(0.7)), // Example icon for pH
+                        const SizedBox(width: 5),
                         Text(
-                          'pH: ${plant.idealPH}',
-                          style: TextStyle(fontSize: 12, color: Colors.orange[700]),
+                          'pH ${plant.idealPH.toStringAsFixed(1)}',
+                          style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12, color: Colors.orange[800]),
                         ),
                       ],
                     ),

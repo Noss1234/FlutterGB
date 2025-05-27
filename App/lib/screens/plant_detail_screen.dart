@@ -88,11 +88,13 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Access theme
+
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppBar( // AppBar will use appBarTheme from main.dart
         title: Text(widget.plant.name),
-        backgroundColor: Colors.green[700],
-        foregroundColor: Colors.white,
+        // backgroundColor: Colors.green[700], // No longer needed here
+        // foregroundColor: Colors.white, // No longer needed here
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -101,9 +103,9 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
           )
         ],
       ),
-      backgroundColor: Colors.green[50],
+      backgroundColor: Colors.transparent, // Use transparent for shared background
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: theme.primaryColor))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -157,66 +159,80 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                   const SizedBox(height: 16),
 
                   // 🌿 Kategorien & Beschreibung
-                  Text(
-                    widget.plant.category,
-                    style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black54),
-                  ),
-                  const SizedBox(height: 8),
-
-                  Text(
-                    widget.plant.description.isNotEmpty ? widget.plant.description : "Keine Beschreibung verfügbar.",
-                    style: const TextStyle(fontSize: 15),
+                  // 🌿 Kategorien & Beschreibung
+                  Card( // Wrap description and category in a card
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                           Text(
+                            "Details", // Section title
+                            style: theme.textTheme.titleLarge?.copyWith(color: theme.primaryColor),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            widget.plant.category,
+                            style: theme.textTheme.titleMedium?.copyWith(fontStyle: FontStyle.italic, color: Colors.grey[700], fontSize: 15), // Adjusted style
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            widget.plant.description.isNotEmpty ? widget.plant.description : "Keine Beschreibung verfügbar.",
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    )
                   ),
                   const SizedBox(height: 16),
 
-                  // 💧 Wasserbedarf
-                  _buildInfoTile(
-                    icon: Icons.opacity,
-                    title: "Wasserbedarf",
-                    value: "${widget.plant.waterNeed} ml pro Tag",
+                  // 💧 Wasserbedarf & andere Attribute
+                  _buildInfoCard(
+                    title: "Attribute",
+                    children: [
+                      _buildInfoTile(
+                        icon: Icons.opacity_outlined,
+                        title: "Wasserbedarf",
+                        value: "${widget.plant.waterNeed} ml pro Tag",
+                        theme: theme,
+                      ),
+                      _buildInfoTile(
+                        icon: Icons.science_outlined,
+                        title: "Optimaler pH-Wert",
+                        value: widget.plant.idealPH.toStringAsFixed(1),
+                        theme: theme,
+                      ),
+                      _buildInfoTile(
+                        icon: Icons.public_outlined,
+                        title: "Bewässerungszone",
+                        value: widget.plant.zone.isNotEmpty ? "Zone ${widget.plant.zone}" : "Nicht zugewiesen",
+                        theme: theme,
+                      ),
+                    ],
+                    theme: theme,
                   ),
-
-                  // 🌡️ pH-Wert
-                  _buildInfoTile(
-                    icon: Icons.science_outlined, // Changed icon
-                    title: "Optimaler pH-Wert",
-                    value: widget.plant.idealPH.toStringAsFixed(1),
-                  ),
-
-                  // 🌍 Zugeordnete Zone
-                  _buildInfoTile(
-                    icon: Icons.public_outlined, // Changed icon
-                    title: "Bewässerungszone",
-                    value: widget.plant.zone.isNotEmpty ? "Zone ${widget.plant.zone}" : "Nicht zugewiesen",
-                  ),
+                  const SizedBox(height: 16),
                   
-                  // ✨ Status & Verbrauch
-                  const SizedBox(height: 8),
-                  _buildStatusInfo(),
-                  _buildWaterConsumptionInfo(),
-                  const SizedBox(height: 8),
-
-
-                  // (Zukünftige Buttons z. B. Bearbeiten, Zeitplan ändern etc.)
+                  // ✨ Status & Verbrauch in einem Card
+                  _buildInfoCard(
+                    title: "Live Daten",
+                    children: [
+                      _buildStatusInfo(), // Already uses _buildInfoTile
+                      _buildWaterConsumptionInfo(), // Already uses _buildInfoTile
+                    ],
+                    theme: theme,
+                  ),
                   const SizedBox(height: 24),
                   Center(
-                    child: ElevatedButton.icon(
+                    child: ElevatedButton.icon( // Button will use elevatedButtonTheme
                       onPressed: () {
-                        // TODO: Implement edit feature for the plant
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Bearbeiten-Funktion noch nicht implementiert.')),
                         );
                       },
-                      icon: const Icon(Icons.edit_note_outlined), // Changed icon
+                      icon: const Icon(Icons.edit_note_outlined),
                       label: const Text("Pflanze bearbeiten"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[600],
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      ),
+                      // style is inherited from theme
                     ),
                   )
                 ],
@@ -225,32 +241,52 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     );
   }
 
+  Widget _buildInfoCard({required String title, required List<Widget> children, required ThemeData theme}) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleLarge?.copyWith(color: theme.primaryColor),
+            ),
+            const SizedBox(height: 8),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+  
   Widget _buildInfoTile({
     required IconData icon,
     required String title,
     required String value,
-    Color? valueColor, // Optional color for the value text
+    Color? valueColor,
+    required ThemeData theme, // Pass theme
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10.0), // Increased padding
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center, // Center align items
         children: [
-          Icon(icon, color: Colors.green[700], size: 20),
+          Icon(icon, color: theme.iconTheme.color?.withOpacity(0.8), size: 22), // Use themed icon color
           const SizedBox(width: 16),
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, fontSize: 15),
             ),
           ),
           const SizedBox(width: 8),
-          Expanded( // Allow value to wrap
-            flex: 2, // Give more space to value
+          Expanded( 
+            flex: 1, // Adjusted flex for better balance
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: TextStyle(fontSize: 15, color: valueColor ?? Colors.black87),
+              style: theme.textTheme.bodyMedium?.copyWith(fontSize: 15, color: valueColor ?? theme.textTheme.bodyMedium?.color),
             ),
           ),
         ],

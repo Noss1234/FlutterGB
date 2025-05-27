@@ -16,42 +16,54 @@ class PlantCategoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Access theme
+
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppBar( // Will use appBarTheme
         title: Text(category),
-        backgroundColor: Colors.green[700],
-        foregroundColor: Colors.white,
       ),
-      backgroundColor: Colors.green[50],
+      backgroundColor: Colors.transparent, // For shared background
       body: ListView.builder(
+        padding: const EdgeInsets.all(12.0), // Adjusted padding
         itemCount: plantsData.length,
         itemBuilder: (BuildContext context, int index) {
           final entry = plantsData[index];
           final String? imagePath = entry['imagePath'];
 
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            elevation: 2,
+          return Card( // Card will use cardTheme
             child: ListTile(
-              leading: imagePath != null && imagePath.isNotEmpty
-                  ? Image.asset(
-                      imagePath,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        // Fallback for asset not found
-                        return Icon(Icons.local_florist, size: 40, color: Colors.grey[400]);
-                      },
-                    )
-                  : Icon(Icons.local_florist, size: 40, color: Colors.grey[400]),
-              title: Text(entry['name'] ?? 'Unknown Plant'),
-              subtitle: Text(entry['description'] ?? 'No description available.'),
-              trailing: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[600],
-                  foregroundColor: Colors.white,
-                ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16), // Adjust ListTile padding
+              leading: SizedBox( // Constrain image/icon size
+                width: 50,
+                height: 50,
+                child: imagePath != null && imagePath.isNotEmpty
+                    ? ClipRRect( // Clip image to rounded corners
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.asset(
+                          imagePath,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(Icons.local_florist_outlined, size: 30, color: theme.iconTheme.color?.withOpacity(0.7));
+                          },
+                        ),
+                      )
+                    : Icon(Icons.local_florist_outlined, size: 30, color: theme.iconTheme.color?.withOpacity(0.7)),
+              ),
+              title: Text(
+                entry['name'] ?? 'Unknown Plant',
+                style: theme.textTheme.titleLarge?.copyWith(fontSize: 17),
+              ),
+              subtitle: Text(
+                entry['description'] ?? 'No description available.',
+                style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: ElevatedButton( // Button will use elevatedButtonTheme
+                // style: ElevatedButton.styleFrom( // Specific overrides if needed
+                //   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                //   textStyle: const TextStyle(fontSize: 13),
+                // ),
                 onPressed: () {
                   final plantProvider = Provider.of<PlantProvider>(context, listen: false);
                   
@@ -71,11 +83,11 @@ class PlantCategoryScreen extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('${newPlant.name} added to your garden!'),
-                      backgroundColor: Colors.green[800],
+                      backgroundColor: Colors.green[700], // Consistent SnackBar color
                     ),
                   );
                 },
-                child: const Text('Add to My Garden'),
+                child: const Text('Add'), // Keep it short, or "Add Plant"
               ),
             ),
           );

@@ -184,58 +184,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Access theme
+
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppBar( // Will use appBarTheme
         title: const Text("Einstellungen"),
-        backgroundColor: Colors.green[700],
-        foregroundColor: Colors.white,
       ),
-      backgroundColor: Colors.green[50],
+      backgroundColor: Colors.transparent, // For shared background
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            _buildSectionTitle("Verbindung & Kalibrierung"),
-            _buildTextField("IP-Adresse des ESP", _ipController),
+            _buildSectionTitle("Verbindung & Kalibrierung", theme),
+            _buildTextField("IP-Adresse des ESP", _ipController, theme: theme),
             const SizedBox(height: 12),
             _buildTextField(
               "Kalibrierfaktor (Impulse/Liter)",
               _calibrationController,
               keyboardType: TextInputType.number,
+              theme: theme,
             ),
             const SizedBox(height: 20),
-            ElevatedButton.icon(
+            ElevatedButton.icon( // Will use elevatedButtonTheme
               onPressed: _isSaving ? null : _saveSettings,
               icon: const Icon(Icons.save_outlined),
               label: const Text("Einstellungen speichern"),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green[600], foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
+              // style: ElevatedButton.styleFrom(backgroundColor: Colors.green[600], foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
             ),
-            const Divider(height: 30, thickness: 1),
+            const Divider(height: 40, thickness: 1, indent: 10, endIndent: 10),
 
-            _buildSectionTitle("Systemaktionen"),
+            _buildSectionTitle("Systemaktionen", theme),
             _buildActionButton(
               title: "Wasserverbrauch zurücksetzen",
               icon: Icons.delete_sweep_outlined,
               onPressed: _resetWaterUsage,
-              color: Colors.orange[700],
+              color: Colors.orange[700], // Custom color for destructive actions
+              theme: theme,
             ),
             const SizedBox(height: 12),
             _buildActionButton(
               title: "Routinen zurücksetzen",
               icon: Icons.event_busy_outlined,
               onPressed: _resetRoutines,
-              color: Colors.orange[700],
+              color: Colors.orange[700], // Custom color
+              theme: theme,
             ),
-            const Divider(height: 30, thickness: 1),
+            const Divider(height: 40, thickness: 1, indent: 10, endIndent: 10),
 
-            _buildSectionTitle("HTTP Testtool"),
-            _buildTextField("Endpoint (z.B. /status)", _httpTestEndpointController),
+            _buildSectionTitle("HTTP Testtool", theme),
+            _buildTextField("Endpoint (z.B. /status)", _httpTestEndpointController, theme: theme),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _httpTestMethod,
-              decoration: const InputDecoration(
+              decoration: InputDecoration( // Will use inputDecorationTheme
                 labelText: "HTTP Methode",
-                border: OutlineInputBorder(),
+                // border: OutlineInputBorder(), // from theme
               ),
               items: <String>['GET', 'POST'].map((String value) {
                 return DropdownMenuItem<String>(
@@ -254,30 +257,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildTextField(
                 "POST Body (JSON)", 
                 _httpTestPostBodyController,
-                maxLines: 3
+                maxLines: 3,
+                theme: theme,
               ),
             ],
             const SizedBox(height: 16),
-            ElevatedButton.icon(
+            ElevatedButton.icon( // Will use elevatedButtonTheme
               onPressed: _isTestingHttp ? null : _sendHttpTestRequest,
               icon: _isTestingHttp ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white)) : const Icon(Icons.send_outlined),
               label: const Text("HTTP Anfrage senden"),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[600], foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700]), // Custom color for this specific button
             ),
             if (_httpTestResponse != null) ...[
               const SizedBox(height: 16),
-              Text("Antwort:", style: Theme.of(context).textTheme.titleSmall),
+              Text("Antwort:", style: theme.textTheme.titleMedium), // Using themed text
               const SizedBox(height: 4),
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(12), // Increased padding
                 decoration: BoxDecoration(
-                  color: Colors.black12,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.grey[400]!)
+                  color: Colors.black.withOpacity(0.05), // Softer background
+                  borderRadius: BorderRadius.circular(8), // Rounded corners
+                  border: Border.all(color: Colors.grey[300]!)
                 ),
                 child: SelectableText(
                   _httpTestResponse!,
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                  style: TextStyle(fontFamily: 'monospace', fontSize: 13, color: Colors.grey[800]), // Adjusted font size and color
                 ),
               ),
             ],
@@ -288,41 +292,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0, top: 8.0),
+      padding: const EdgeInsets.only(bottom: 12.0, top: 10.0), // Adjusted padding
       child: Text(
         title,
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.green[800]),
+        style: theme.textTheme.headlineSmall?.copyWith(color: theme.primaryColor), // Use themed text
       ),
     );
   }
 
-  Widget _buildActionButton({required String title, required IconData icon, required VoidCallback onPressed, Color? color}) {
+  Widget _buildActionButton({required String title, required IconData icon, required VoidCallback onPressed, Color? color, required ThemeData theme}) {
     return ElevatedButton.icon(
       icon: Icon(icon),
       label: Text(title),
       onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color ?? Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        textStyle: const TextStyle(fontSize: 15)
+      style: ElevatedButton.styleFrom( // Will mostly inherit from theme
+        backgroundColor: color, // Allow specific override
+        // foregroundColor: Colors.white, // From theme
+        // padding: const EdgeInsets.symmetric(vertical: 10), // From theme or custom
+        // textStyle: const TextStyle(fontSize: 15) // From theme
       ),
     );
   }
 
   Widget _buildTextField(String label, TextEditingController controller,
-      {TextInputType keyboardType = TextInputType.text, int maxLines = 1}) {
+      {TextInputType keyboardType = TextInputType.text, int maxLines = 1, required ThemeData theme}) {
     return TextField(
       controller: controller,
-      decoration: InputDecoration(
+      decoration: InputDecoration( // Will use inputDecorationTheme
         labelText: label,
-        border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        // border: const OutlineInputBorder(), // from theme
+        // contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12), // from theme
       ),
       keyboardType: keyboardType,
       maxLines: maxLines,
+      style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[800]), // Ensure text is readable
     );
   }
 }

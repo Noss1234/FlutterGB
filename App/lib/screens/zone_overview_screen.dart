@@ -94,65 +94,78 @@ class _ZoneOverviewScreenState extends State<ZoneOverviewScreen> {
         backgroundColor: Colors.green[700],
         foregroundColor: Colors.white,
       ),
-      backgroundColor: Colors.green[50],
+      backgroundColor: Colors.transparent, // Make background transparent
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: zoneCount,
         itemBuilder: (ctx, index) {
           final bool isCurrentlyWatering = _isWatering[index] ?? false;
+          final theme = Theme.of(context); // Access theme
+
           return Card(
-            elevation: 2,
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            child: ListTile(
-              leading: Icon(
-                Icons.water_drop_outlined, // Changed to outlined
-                color: isCurrentlyWatering ? Colors.green[600] : Colors.blue[600],
-                size: 30,
-              ),
-              title: Text("Zone $index", style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            // Card properties will be inherited from cardTheme
+            child: Padding( // Added padding for better spacing inside the card
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+              child: ListTile(
+                contentPadding: EdgeInsets.zero, // Adjust ListTile's own padding
+                leading: Icon(
+                  Icons.water_drop_outlined,
+                  color: isCurrentlyWatering ? Colors.green[700] : theme.iconTheme.color, // Use themed icon color
+                  size: 32, // Slightly larger icon
+                ),
+                title: Text(
+                  "Zone $index", 
+                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600)
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: [
-                      const Text("Menge: ", style: TextStyle(fontSize: 13)),
-                      SizedBox(
-                        width: 70, // Slightly reduced width
-                        child: TextField(
-                          controller: controllers[index],
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            border: const OutlineInputBorder(),
-                            isDense: true,
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                  children: [
+                    Row(
+                      children: [
+                        Text("Menge: ", style: theme.textTheme.bodyMedium?.copyWith(fontSize: 14)),
+                        SizedBox(
+                          width: 70, // Slightly reduced width to accommodate default padding better
+                          child: TextField(
+                            controller: controllers[index],
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration( // Will pick up from inputDecorationTheme
+                              hintText: "ml",
+                              // isDense: true, // Removed, use theme's contentPadding
+                              // contentPadding is now part of the theme
+                            ),
+                            enabled: !isCurrentlyWatering,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(fontSize: 14), // Ensure input text style matches
                           ),
-                          enabled: !isCurrentlyWatering, // Disable input if watering
+                        ),
+                        const SizedBox(width: 4),
+                        Text("ml", style: theme.textTheme.bodyMedium?.copyWith(fontSize: 14)),
+                      ],
+                    ),
+                    if (isCurrentlyWatering)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6.0),
+                        child: Text(
+                          'Bewässerung aktiv...',
+                          style: TextStyle(color: Colors.green[700], fontSize: 13, fontStyle: FontStyle.italic),
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      const Text("ml", style: TextStyle(fontSize: 13)),
-                    ],
+                  ],
+                ),
+                trailing: ElevatedButton.icon(
+                  onPressed: () => _toggleZoneWatering(index),
+                  icon: Icon(
+                    isCurrentlyWatering ? Icons.stop_circle_outlined : Icons.play_circle_fill_outlined,
+                    size: 20, 
                   ),
-                  if (isCurrentlyWatering)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
-                      child: Text(
-                        'Bewässerung aktiv...',
-                        style: TextStyle(color: Colors.green[700], fontSize: 12, fontStyle: FontStyle.italic),
-                      ),
-                    ),
-                ],
-              ),
-              trailing: TextButton.icon(
-                onPressed: () => _toggleZoneWatering(index),
-                icon: Icon(isCurrentlyWatering ? Icons.stop_circle_outlined : Icons.play_circle_filled_outlined),
-                label: Text(isCurrentlyWatering ? "Stop" : "Start"),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: isCurrentlyWatering ? Colors.red[600] : Colors.green[600],
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  label: Text(isCurrentlyWatering ? "Stop" : "Start"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isCurrentlyWatering ? Colors.red[500] : Colors.green[500],
+                    // Let padding be inherited from theme or use a slightly adjusted one if needed
+                    // padding: theme.elevatedButtonTheme.style?.padding?.resolve({}), // Example of using theme padding
+                  ), // Shape and textStyle will be inherited from elevatedButtonTheme.
                 ),
               ),
             ),
